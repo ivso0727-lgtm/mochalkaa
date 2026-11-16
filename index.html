@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPONGE ASMR</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;overflow:hidden;font-family:Arial,sans-serif;color:white;
+ background:radial-gradient(ellipse at 50% 35%,#e9d7c5,#a78d79 65%,#66564d);
+ user-select:none;touch-action:pan-y;
+}
+#game{height:100dvh;position:relative;overflow:hidden}
+.header{
+ position:absolute;z-index:10;top:20px;left:20px;right:20px;
+ display:flex;justify-content:space-between;align-items:center;gap:12px
+}
+.panel{
+ background:#382c29c9;border:1px solid #ffffff55;
+ border-radius:18px;padding:13px 19px;backdrop-filter:blur(12px);
+ box-shadow:0 8px 25px #38251b44
+}
+.score{font-size:20px;font-weight:bold}
+.meter{width:min(42vw,400px);text-align:center}
+.meter-label{font-size:14px;margin-bottom:7px}
+.track{height:13px;border-radius:20px;background:#4c3b36;overflow:hidden}
+#bar{height:100%;width:0%;background:linear-gradient(90deg,#9ceaff,#fff);transition:width .2s}
+button{
+ border:1px solid #ffffff55;background:#382c29d9;color:white;
+ padding:12px 17px;border-radius:14px;font-size:15px;cursor:pointer
+}
+button:active{transform:scale(.95)}
+.scene{
+ position:absolute;inset:0;display:flex;align-items:center;
+ justify-content:center;padding-top:55px;
+}
+.sink{
+ position:absolute;width:min(90vw,850px);height:min(55vh,430px);
+ bottom:-100px;border-radius:50% 50% 0 0;
+ background:linear-gradient(145deg,#d4c9bd,#80756d 65%,#514944);
+ border:14px solid #e6ddd4;
+ box-shadow:inset 0 20px 45px #51443c88,0 -8px 35px #fff8;
+}
+.sink:before{
+ content:"";position:absolute;inset:18px 20px 0;border-radius:50% 50% 0 0;
+ background:linear-gradient(160deg,#b9b0a8,#827a75);
+ box-shadow:inset 0 15px 35px #4d454088;
+}
+.sponge-wrap{
+ position:relative;z-index:3;width:min(65vw,430px);height:min(42vw,270px);
+ min-height:170px;display:flex;align-items:center;justify-content:center;
+ cursor:grab;transform:rotate(-7deg);transition:transform .18s;
+}
+.sponge{
+ width:100%;height:100%;position:relative;border-radius:34% 28% 30% 25%;
+ background:
+ radial-gradient(ellipse at 15% 20%,#fff8 0 2px,transparent 4px),
+ radial-gradient(ellipse at 35% 70%,#a65e12aa 0 2px,transparent 5px),
+ radial-gradient(ellipse at 70% 30%,#fff7 0 2px,transparent 5px),
+ radial-gradient(ellipse at 80% 75%,#9d570eaa 0 3px,transparent 6px),
+ radial-gradient(ellipse at 50% 50%,#ffdc64,#f6b52e 65%,#c87919);
+ background-size:25px 23px,31px 29px,27px 25px,35px 31px,100% 100%;
+ box-shadow:inset -15px -22px 30px #a85f17aa,
+ inset 12px 12px 25px #fff7,0 30px 45px #38251b77;
+ transform:scale(1);
+ transition:transform .16s cubic-bezier(.2,.8,.3,1);
+}
+.sponge:before{
+ content:"";position:absolute;inset:10px;border-radius:inherit;
+ background:radial-gradient(ellipse at 25% 30%,#fff5,transparent 30%),
+ radial-gradient(ellipse at 70% 70%,#9d5c1a44,transparent 45%);
+}
+#game.squeezing .sponge{transform:scale(.79,.68) rotate(2deg)}
+#game.squeezing .sponge-wrap{transform:rotate(-2deg) translateY(15px)}
+.foam{
+ position:absolute;z-index:4;inset:auto 0 0;height:0;
+ background:
+ radial-gradient(circle at 10% 70%,#fff 0 30px,transparent 33px),
+ radial-gradient(circle at 30% 90%,#fff 0 48px,transparent 52px),
+ radial-gradient(circle at 55% 75%,#fff 0 45px,transparent 49px),
+ radial-gradient(circle at 80% 90%,#fff 0 55px,transparent 59px),
+ linear-gradient(0deg,#fff,#f8ffffcc);
+ transition:height .5s;border-radius:50% 50% 0 0;
+ filter:drop-shadow(0 -8px 15px #fff8);
+}
+.bubble{
+ position:absolute;z-index:6;border-radius:50%;
+ border:2px solid #ffffffbb;
+ background:radial-gradient(circle at 30% 25%,#fff 0 5%,#ffffff55 25%,#a9eaff22 65%,#fff8);
+ box-shadow:inset -3px -4px 8px #fff8,0 0 12px #fff8;
+ animation:floatUp linear forwards;pointer-events:none;
+}
+@keyframes floatUp{
+ 0%{transform:translateY(0) scale(.5);opacity:0}
+ 15%{opacity:.9}
+ 100%{transform:translateY(-75vh) translateX(var(--drift)) scale(1.2);opacity:0}
+}
+.hint{
+ position:absolute;z-index:8;bottom:28px;left:50%;transform:translateX(-50%);
+ background:#382c29d9;padding:15px 24px;border-radius:30px;
+ text-align:center;white-space:nowrap;box-shadow:0 8px 30px #0003;
+ font-size:15px
+}
+.side{
+ position:absolute;z-index:8;left:20px;top:115px;
+ background:#382c29b9;padding:16px;border-radius:17px;line-height:2
+}
+.side b{display:block;margin-bottom:5px}
+@media(max-width:600px){
+ .header{top:12px;left:10px;right:10px}
+ .panel{padding:10px 12px}
+ .score{font-size:16px}
+ .side{top:90px;left:10px;font-size:12px;padding:10px}
+ .hint{bottom:18px;font-size:12px;padding:13px 16px}
+ .sponge-wrap{width:76vw;height:45vw}
+}
+</style>
+</head>
+<body>
+<div id="game">
+ <div class="header">
+  <div class="panel score">⭐ <span id="score">0</span></div>
+  <div class="panel meter">
+   <div class="meter-label">🫧 ПЕНА: <span id="percent">0</span>%</div>
+   <div class="track"><div id="bar"></div></div>
+  </div>
+  <button id="reset">↻ Сброс</button>
+ </div>
+
+ <div class="side">
+  <b>ASMR БОНУСЫ</b>
+  🫧 Пузырьки<br>
+  💧 Вода<br>
+  ✨ Пена
+ </div>
+
+ <div class="scene">
+  <div class="sink"></div>
+  <div class="foam" id="foam"></div>
+  <div class="sponge-wrap" id="sponge">
+   <div class="sponge"></div>
+  </div>
+ </div>
+
+ <div class="hint" id="hint">👆 Зажми губку и начинай мять!</div>
+</div>
+
+<script>
+const game=document.getElementById('game');
+const sponge=document.getElementById('sponge');
+const scoreEl=document.getElementById('score');
+const percentEl=document.getElementById('percent');
+const bar=document.getElementById('bar');
+const foam=document.getElementById('foam');
+const hint=document.getElementById('hint');
+
+let score=0;
+let foamLevel=0;
+let squeezing=false;
+let audio=null;
+let lastBubble=0;
+
+function sound(){
+ try{
+  if(!audio) audio=new (window.AudioContext||window.webkitAudioContext)();
+  if(audio.state==='suspended') audio.resume();
+  const oscillator=audio.createOscillator();
+  const gain=audio.createGain();
+  oscillator.type='sine';
+  oscillator.frequency.setValueAtTime(160+Math.random()*120,audio.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(75,audio.currentTime+.12);
+  gain.gain.setValueAtTime(.035,audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.15);
+  oscillator.connect(gain);gain.connect(audio.destination);
+  oscillator.start();oscillator.stop(audio.currentTime+.16);
+ }catch(e){}
+}
+
+function update(){
+ scoreEl.textContent=score;
+ percentEl.textContent=Math.round(foamLevel);
+ bar.style.width=foamLevel+'%';
+ foam.style.height=(foamLevel*.72)+'%';
+}
+
+function makeBubble(){
+ const b=document.createElement('div');
+ b.className='bubble';
+ const size=8+Math.random()*27;
+ b.style.width=size+'px';
+ b.style.height=size+'px';
+ b.style.left=(25+Math.random()*50)+'%';
+ b.style.top=(40+Math.random()*40)+'%';
+ b.style.setProperty('--drift',(Math.random()*150-75)+'px');
+ b.style.animationDuration=(2+Math.random()*3)+'s';
+ game.appendChild(b);
+ setTimeout(()=>b.remove(),5200);
+}
+
+function squeezeStart(e){
+ if(e) e.preventDefault();
+ if(squeezing)return;
+ squeezing=true;
+ game.classList.add('squeezing');
+ hint.textContent='🧽 Мни сильнее! Больше пены!';
+ sound();
+}
+
+function squeezeEnd(){
+ if(!squeezing)return;
+ squeezing=false;
+ game.classList.remove('squeezing');
+}
+
+sponge.addEventListener('pointerdown',squeezeStart);
+window.addEventListener('pointerup',squeezeEnd);
+window.addEventListener('pointercancel',squeezeEnd);
+window.addEventListener('blur',squeezeEnd);
+
+function reset(){
+ score=0;
+ foamLevel=0;
+ update();
+ hint.textContent='👆 Зажми губку и начинай мять!';
+ document.querySelectorAll('.bubble').forEach(b=>b.remove());
+}
+
+document.getElementById('reset').addEventListener('click',reset);
+
+setInterval(()=>{
+ if(!squeezing)return;
+ score+=1;
+ foamLevel=Math.min(100,foamLevel+.55);
+ update();
+ const now=Date.now();
+ if(now-lastBubble>90){
+  makeBubble();
+  if(Math.random()>.5)makeBubble();
+  lastBubble=now;
+ }
+ if(Math.random()>.6)sound();
+ if(foamLevel>=100){
+  hint.textContent='🎉 Целое море пены! Продолжай!';
+ }
+},100);
+
+setInterval(()=>{
+ if(!squeezing && foamLevel>0){
+  foamLevel=Math.max(0,foamLevel-.08);
+  update();
+ }
+},250);
+
+for(let i=0;i<12;i++){
+ setTimeout(makeBubble,i*250);
+}
+</script>
+</body>
+</html>
